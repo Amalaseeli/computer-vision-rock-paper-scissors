@@ -2,8 +2,16 @@ import random
 
 #Get computer choice
 def get_computer_choice():
-    list=['rock','paper','scissors']
-    computer_choice=random.choice(list)
+    guess={}
+    with open('labels.txt') as f:
+        for content in f:
+            key,value=content.split()
+            guess[key]=value
+
+        print(guess)
+        f.close()
+    #list=['rock','paper','scissors']
+    computer_choice=random.choice(list(guess.values())).lower()
     return computer_choice
 
 #get user choice

@@ -18,3 +18,6 @@
 - Ipykernel
 
 ### <b>Any user can install and exact dependencies by running <i> pip install requirements.txt.</i></b>
+
+
+### Manually checked the code by running manual_rps.py
