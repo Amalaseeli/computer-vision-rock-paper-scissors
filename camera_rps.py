@@ -1,5 +1,6 @@
 '''Let's play a Rock, Paper, Scissors Game
 '''
+from tkinter import N
 import cv2
 import random
 from keras.models import load_model
@@ -17,8 +18,9 @@ class Rps:
         self.choices=["Rock","Paper","Scissors","Nothing"]
 
     def get_user_choice(self):
-        end_time=time.time()+0.5
-        while end_time>time.time(): 
+        end_time=time.time()+1
+
+        while end_time>time.time():
             ret, frame = cap.read()
             font = cv2.FONT_HERSHEY_SIMPLEX
             resized_frame = cv2.resize(frame, (224, 224), interpolation = cv2.INTER_AREA)
@@ -26,19 +28,15 @@ class Rps:
             normalized_image = (image_np.astype(np.float32) / 127.0) - 1 # Normalize the image
             data[0] = normalized_image
             prediction = model.predict(data)
-            
-            user_guess=np.argmax(prediction)
+            user_guess=np.argmax(prediction[0])
             #Puttext() method for inserting text on video
             cv2.putText(frame,f"User Choice {self.choices[user_guess]} ",(50, 50),font,1,(0, 255, 255),2,cv2.LINE_4)
             cv2.imshow('frame', frame)
+            user_choice = self.choices[user_guess].lower()
             # Press q to close the window
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        return self.choices[user_guess].lower() 
-              
-        cap.release()
-    # Destroy all the windows
-        cv2.destroyAllWindows()
+        return user_choice
          
     #Get Computer Choice
     @staticmethod
@@ -52,34 +50,48 @@ class Rps:
         computer_choice=random.choice(list(guess.values())).lower()
         return computer_choice
 
-    def get_prediction(self):
-         
-        computer_choice=self.get_computer_choice()
-        user_choice=self.get_user_choice()
-        
+    @staticmethod
+    def countdown(t):
+        minutes,seconds=divmod(t,60)#Get minutes and seconds
+        timer="{:02d}:{:02d}".format(minutes,seconds)
+        print(timer, end="\r")#Force the cursor to go back to start of screen
+        time.sleep(2)
+        t-=1
+        print("Rock Paper Scissors shoot...")
+
+    def get_winner(self,computer_choice,user_choice):
         print("Computer_choice:",computer_choice)
         print("User_choice:",user_choice)
         if (computer_choice=="rock" and user_choice=="scissors") or (computer_choice=="paper" and user_choice=="rock") or (computer_choice=="scissors" and user_choice=="paper"):
-            self.computer_wins+=1
+                self.computer_wins+=1
+                
         elif (computer_choice=="rock" and user_choice=="paper") or (computer_choice=="paper" and user_choice=="scissors") or (computer_choice=="scissors" and user_choice=="rock"):
-            self.user_wins+=1
+                self.user_wins+=1
         else:
             print("Tie")
-        self.get_winner()
+        return self.computer_wins,self.user_wins
 
-        
-    def get_winner(self):
-        if self.user_wins<=3 and self.computer_wins<=3:
-            start_time=time.time()
-            print(f"Computer_wins {self.computer_wins} times")
-            print(f"User_wins {self.user_wins} times")
-            self.get_prediction()
-        elif self.user_wins>3:
+def play_game():
+    play=Rps()
+    
+    while play.user_wins < 3 or play.computer_wins < 3: 
+        play.countdown(5)
+        computer_choice=play.get_computer_choice()
+        user_choice=play.get_user_choice()
+        play.get_winner(computer_choice,user_choice)
+        print(f"Computer_wins {play.computer_wins} times")
+        print(f"User_wins {play.user_wins} times")
+            
+        if play.user_wins==3:
             print("Oops! the computer lost the game. You win the game")
-        else:
+            break
+        elif play.computer_wins==3:
             print("Oops! the user lost the game. The computer win the game")
-
-play=Rps()
-play.get_winner()
+            break
+    cap.release()
+    # Destroy all the windows
+    cv2.destroyAllWindows()   
+       
+play_game()
 
 
